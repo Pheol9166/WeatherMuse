@@ -18,7 +18,7 @@ class WeatherMuse(commands.Bot):
         super().run(self.token)
     
     async def setup_hook(self):
-        await self.load_extension(f"./WeatherMuse/cogs.recommend")
+        await self.load_extension("cogs.recommend")
         await bot.tree.sync(guild= discord.Object(id=self.id))
     
     async def on_ready(self):
