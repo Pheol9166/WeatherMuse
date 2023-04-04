@@ -1,25 +1,25 @@
+from typing import Optional
 import discord
 from discord import app_commands
 from discord.ext import commands
-from typing import Optional
 import requests
 import json
 import random
 
 
 class Recommend(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        with open("./config.json", "rt", encoding="utf-8") as f:
+        with open("./config.json", "r", encoding="utf-8") as f:
             config = json.load(f)
             self.weather_api_key = config['OpenWeatherAPI']['token']
         self.songs_data: json = self.get_songs_data()
-        
-    def get_songs_data(self) -> json:
+
+    def get_songs_data(self):
         with open('./DB/songs.json', 'r') as f:
             data = json.load(f)
         return data
-        
+
     def get_weather(self, city: str) -> Optional[str]:
         try:
             weather_url = f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={self.weather_api_key}&units=metric'
@@ -66,6 +66,6 @@ class Recommend(commands.Cog):
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(
         Recommend(bot),
-        guilds= [discord.Object(id= 1079467722980733079)]
+        guilds= [discord.Object(id= bot.id)]
     )
     
