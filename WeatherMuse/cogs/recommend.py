@@ -1,10 +1,12 @@
 from typing import Optional
-import discord
-from discord import app_commands
-from discord.ext import commands
 import requests
 import json
 import random
+import discord
+from discord import app_commands
+from discord.ext import commands
+from WeatherMuse.load_songs import get_songs
+from WeatherMuse.err.errors import WeatherAPIError, WeatherNotFound, SongNotFound
 
 
 class Recommend(commands.Cog):
@@ -13,12 +15,7 @@ class Recommend(commands.Cog):
         with open("./config.json", "r", encoding="utf-8") as f:
             config = json.load(f)
             self.weather_api_key = config['OpenWeatherAPI']['token']
-        self.songs_data: json = self.get_songs_data()
 
-    def get_songs_data(self):
-        with open('./DB/songs.json', 'r') as f:
-            data = json.load(f)
-        return data
 
     def get_weather(self, city: str) -> Optional[str]:
         try:
@@ -29,22 +26,23 @@ class Recommend(commands.Cog):
 
             return weather_main
         except:
-            return None
+            raise WeatherAPIError
 
     def recommend(self, weather: str) -> Optional[str]:
         try:
+            songs_data = get_songs()
             if weather in ["Rain", "Drizzle", "Squall", "Tornado", "Thunderstorm"]:
-                return self.songs_data["Rain"]
+                return songs_data["Rain"]
             elif weather == "Snow":
-                return self.songs_data["Snow"]
+                return songs_data["Snow"]
             elif weather in ["Clouds", "Haze", "Fog", "Mist", "Ash", "Dust", "Smoke", "Sand"]:
-                return self.songs_data["Clouds"]
+                return songs_data["Clouds"]
             elif weather == "Clear":
-                return self.songs_data["Clear"]
+                return songs_data["Clear"]
             else:
-                return None
+                raise WeatherNotFound
         except:
-            return None
+            raise SongNotFound
     
     @app_commands.command(name="추천", description="오늘 날씨에 맞는 노래를 추천합니다. (기본은 서울)")
     @app_commands.describe(city="The city to get weather")
@@ -52,16 +50,24 @@ class Recommend(commands.Cog):
         weather: str= self.get_weather(city)
         songs: str= self.recommend(weather)
     
-        if songs is None:
+        song = random.choice(songs)
+        embed = discord.Embed(title="Weather Muse", description="날씨에 따른 음악 추천", color=0x00aaaa)
+        embed.add_field(name="🌦️ 날씨", value=f"{weather}({city})", inline=False)
+        embed.add_field(name="🎵 제목", value=song["title"], inline=False)
+        embed.add_field(name="🎤 가수", value=song["artist"], inline=False)
+        embed.add_field(name="📌 URL", value=song["url"], inline=False)
+        await interaction.response.send_message(embed=embed)    
+        
+    @recommend_command.error
+    async def recommend_error(self, interaction: discord.Interaction, error):
+        if isinstance(error, SongNotFound):
             await interaction.response.send_message("미안해요... 이 날씨에 맞는 노래는 없어요...")
+        elif isinstance(error, WeatherAPIError):
+            await interaction.response.send_message("API 에러! 다시 시도해주세요...")
+        elif isinstance(error, WeatherNotFound):
+            await interaction.response.send_message("해당 날씨는 플레이리스트에 없어요...")
         else:
-            song = random.choice(songs)
-            embed = discord.Embed(title="Weather Muse", description="날씨에 따른 음악 추천", color=0x00aaaa)
-            embed.add_field(name="🌦️ 날씨", value=f"{weather}({city})", inline=False)
-            embed.add_field(name="🎵 제목", value=song["title"], inline=False)
-            embed.add_field(name="🎤 가수", value=song["artist"], inline=False)
-            embed.add_field(name="📌 URL", value=song["url"], inline=False)
-            await interaction.response.send_message(embed=embed)      
+            await interaction.response.send_message("에러! 다시 시도해주세요!")      
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(

@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import os
 import json
 
 
@@ -19,12 +20,12 @@ class WeatherMuse(commands.Bot):
         super().run(self.token)
     
     async def setup_hook(self):
-        await self.load_extension("cogs.Recommend")
-        await self.load_extension("cogs.Edit")
-        await bot.tree.sync(guild= discord.Object(id=self.id))
+        for file in os.listdir("./WeatherMuse/cogs"):
+            if file.endswith(".py"):
+                await self.load_extension(f"WeatherMuse.cogs.{file.split('.')[0]}", )
+        
+        await self.tree.sync(guild= discord.Object(id=self.id))
     
     async def on_ready(self):
         print(f"{self.user} has connected to Discord!")
 
-bot = WeatherMuse()
-bot.run()
