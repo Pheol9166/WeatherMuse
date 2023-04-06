@@ -21,32 +21,31 @@ class Search(commands.Cog):
             raise EmbedMakeError
     
     def search_by_mode(self, mode: str, std: str, std2: Optional[str]= None) -> list[discord.Embed]:
-        try:
-            results = []
-            songs = get_songs()
+        results = []
+        songs = get_songs()
+        
+        match mode:
+            case 't':
+                group: str= 'title'
+            case 'a':
+                group: str= 'artist'
+            case 'm':
+                group: list[str] = ['title', 'artist']
             
-            match mode:
-                case 't':
-                    group: str= 'title'
-                case 'a':
-                    group: str= 'artist'
-                case 'm':
-                    group: list[str] = ['title', 'artist']
-                
-            for weather in songs:
-                for song in songs[weather]:
-                    if mode == 'm':
-                        if song[group[0]].lower() == std.lower() and song[group[1]].lower() == std2.lower():
-                            results.append(song)
-                    else:
-                        if song[group].lower() == std.lower():
-                            results.append(song)
-            
-            if len(results):
-                embeds = [self.make_embed(result) for result in results]
-                return embeds
-        except:
-            raise InputNotFound
+        for weather in songs:
+            for song in songs[weather]:
+                if mode == 'm':
+                    if song[group[0]].lower() == std.lower() and song[group[1]].lower() == std2.lower():
+                        results.append(song)
+                else:
+                    if song[group].lower() == std.lower():
+                        results.append(song)
+        
+        if len(results):
+            embeds = [self.make_embed(result) for result in results]
+            return embeds
+        
+        raise InputNotFound
         
     @app_commands.command(name="노래_검색", description="노래 제목과 가수에 부합하는 노래를 찾습니다.")
     @app_commands.describe(song_name="노래 제목", artist="가수")
@@ -69,30 +68,33 @@ class Search(commands.Cog):
         embeds = self.search_by_mode('a', artist)
         
         await interaction.response.send_message(embeds=embeds)
-
+    
     @search_song.error
-    async def search_song_error(self, interaction: discord.Interaction, error: discord.errors):
-        if isinstance(error, InputNotFound):
-            await interaction.response.send_message("해당 입력은 플레이리스트에 없어요...")
-        elif isinstance(error, EmbedMakeError):
+    async def search_song_error(self, interaction: discord.Interaction, error: commands.CommandInvokeError):
+        custom_err = error.original
+        if isinstance(custom_err, InputNotFound):
+            await interaction.response.send_message("이 노래는 플레이리스트에 없어요...")
+        elif isinstance(custom_err, EmbedMakeError):
             await interaction.response.send_message("임베드 생성 에러! 다시 시도해주세요...")
         else:
             await interaction.response.send_message("에러! 다시 시도해주세요...")
     
     @search_by_name.error
-    async def search_name_error(self, interaction: discord.Interaction, error):
-        if isinstance(error, InputNotFound):
-            await interaction.response.send_message("해당 입력은 플레이리스트에 없어요...")
-        elif isinstance(error, EmbedMakeError):
+    async def search_name_error(self, interaction: discord.Interaction, error: commands.CommandInvokeError):
+        custom_err = error.original
+        if isinstance(custom_err, InputNotFound):
+            await interaction.response.send_message("이 노래 제목은 플레이리스트에 없어요...")
+        elif isinstance(custom_err, EmbedMakeError):
             await interaction.response.send_message("임베드 생성 에러! 다시 시도해주세요...")
         else:
             await interaction.response.send_message("에러! 다시 시도해주세요...")
 
     @search_by_artist.error
-    async def search_name_error(self, interaction: discord.Interaction, error: discord.errors):
-        if isinstance(error, InputNotFound):
-            await interaction.response.send_message("해당 입력은 플레이리스트에 없어요...")
-        elif isinstance(error, EmbedMakeError):
+    async def search_artist_error(self, interaction: discord.Interaction, error):
+        custom_err = error.original
+        if isinstance(custom_err, InputNotFound):
+            await interaction.response.send_message("이 가수는 플레이리스트에 없어요...")
+        elif isinstance(custom_err, EmbedMakeError):
             await interaction.response.send_message("임베드 생성 에러! 다시 시도해주세요...")
         else:
             await interaction.response.send_message("에러! 다시 시도해주세요...")

@@ -59,12 +59,13 @@ class Recommend(commands.Cog):
         await interaction.response.send_message(embed=embed)    
         
     @recommend_command.error
-    async def recommend_error(self, interaction: discord.Interaction, error):
-        if isinstance(error, SongNotFound):
+    async def recommend_error(self, interaction: discord.Interaction, error: commands.CommandInvokeError):
+        custom_err = error.original
+        if isinstance(custom_err, SongNotFound):
             await interaction.response.send_message("미안해요... 이 날씨에 맞는 노래는 없어요...")
-        elif isinstance(error, WeatherAPIError):
+        elif isinstance(custom_err, WeatherAPIError):
             await interaction.response.send_message("API 에러! 다시 시도해주세요...")
-        elif isinstance(error, WeatherNotFound):
+        elif isinstance(custom_err, WeatherNotFound):
             await interaction.response.send_message("해당 날씨는 플레이리스트에 없어요...")
         else:
             await interaction.response.send_message("에러! 다시 시도해주세요!")      

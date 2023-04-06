@@ -51,8 +51,7 @@ class Edit(commands.Cog):
         try:
             self.change('t', song_name, new_title)
             embed = discord.Embed(title="🎵 곡 제목 변경", description=f"{song_name}의 제목이 {new_title}로 변경되었습니다!", color=0x00aaaa)
-            await interaction.response.send_message(embed=embed)   
-            
+            await interaction.response.send_message(embed=embed)    
         except SongNotFound:
             await interaction.response.send_message(f"{song_name}라는 노래는 플레이리스트에 없어요...")
                   
