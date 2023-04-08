@@ -5,32 +5,33 @@ import random
 import discord
 from discord import app_commands
 from discord.ext import commands
+from WeatherMuse.type import Config, JSON, Playlist
 from WeatherMuse.load_songs import get_songs
 from WeatherMuse.err.errors import WeatherAPIError, WeatherNotFound, SongNotFound
 
 
 class Recommend(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         with open("./config.json", "r", encoding="utf-8") as f:
-            config = json.load(f)
-            self.weather_api_key = config['OpenWeatherAPI']['token']
+            config: Config = json.load(f)
+            self.weather_api_key: str = config['OpenWeatherAPI']['token']
 
 
-    def get_weather(self, city: str) -> Optional[str]:
+    def get_weather(self, city: str) -> str:
         try:
-            weather_url = f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={self.weather_api_key}&units=metric'
-            response = requests.get(weather_url)
-            weather_data = response.json()
-            weather_main = weather_data['weather'][0]['main']
+            weather_url: str = f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={self.weather_api_key}&units=metric'
+            response: requests.Response = requests.get(weather_url)
+            weather_data: JSON = response.json()
+            weather_main: str = weather_data['weather'][0]['main']
 
             return weather_main
         except:
             raise WeatherAPIError
 
-    def recommend(self, weather: str) -> Optional[str]:
+    def recommend(self, weather: str) -> str:
         try:
-            songs_data = get_songs()
+            songs_data: Playlist = get_songs()
             if weather in ["Rain", "Drizzle", "Squall", "Tornado", "Thunderstorm"]:
                 return songs_data["Rain"]
             elif weather == "Snow":
@@ -50,7 +51,7 @@ class Recommend(commands.Cog):
         weather: str= self.get_weather(city)
         songs: str= self.recommend(weather)
     
-        song = random.choice(songs)
+        song: str = random.choice(songs)
         embed = discord.Embed(title="Weather Muse", description="날씨에 따른 음악 추천", color=0x00aaaa)
         embed.add_field(name="🌦️ 날씨", value=f"{weather}({city})", inline=False)
         embed.add_field(name="🎵 제목", value=song["title"], inline=False)
@@ -70,7 +71,7 @@ class Recommend(commands.Cog):
         else:
             await interaction.response.send_message("에러! 다시 시도해주세요!")      
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(
         Recommend(bot),
         guilds= [discord.Object(id= bot.id)]

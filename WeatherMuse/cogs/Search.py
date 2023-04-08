@@ -2,15 +2,16 @@ from typing import Optional
 import discord
 from discord import app_commands
 from discord.ext import commands
+from WeatherMuse.type import Song, Playlist
 from WeatherMuse.load_songs import get_songs
 from WeatherMuse.err.errors import EmbedMakeError, InputNotFound
 
 
 class Search(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    def make_embed(self, song: dict[str, str]) -> Optional[discord.Embed]:
+    def make_embed(self, song: Song) -> discord.Embed:
         try:
             embed = discord.Embed(title="Weather Muse", description="검색 결과", color=0x00aaaa)
             embed.add_field(name="제목", value=song['title'], inline=False)
@@ -22,7 +23,7 @@ class Search(commands.Cog):
     
     def search_by_mode(self, mode: str, std: str, std2: Optional[str]= None) -> list[discord.Embed]:
         results = []
-        songs = get_songs()
+        songs: Playlist = get_songs()
         
         match mode:
             case 't':
@@ -42,7 +43,7 @@ class Search(commands.Cog):
                         results.append(song)
         
         if len(results):
-            embeds = [self.make_embed(result) for result in results]
+            embeds: list[discord.Embed] = [self.make_embed(result) for result in results]
             return embeds
         
         raise InputNotFound
@@ -50,7 +51,7 @@ class Search(commands.Cog):
     @app_commands.command(name="노래_검색", description="노래 제목과 가수에 부합하는 노래를 찾습니다.")
     @app_commands.describe(song_name="노래 제목", artist="가수")
     async def search_song(self, interaction: discord.Interaction, song_name: str, artist: str):
-        embeds = self.search_by_mode('m', song_name, artist)
+        embeds: list[discord.Embed] = self.search_by_mode('m', song_name, artist)
         
         for embed in embeds:
             await interaction.response.send_message(embed=embed)
@@ -58,14 +59,14 @@ class Search(commands.Cog):
     @app_commands.command(name="제목으로_검색", description="노래 제목에 부합하는 노래를 찾습니다.")
     @app_commands.describe(song_name="노래 제목")
     async def search_by_name(self, interaction: discord.Interaction, song_name: str):
-        embeds = self.search_by_mode('t', song_name)
+        embeds: list[discord.Embed] = self.search_by_mode('t', song_name)
 
         await interaction.response.send_message(embeds=embeds)
     
     @app_commands.command(name="가수로_검색", description="가수에 부합하는 노래를 찾습니다.")
     @app_commands.describe(artist="가수")
     async def search_by_artist(self, interaction: discord.Interaction, artist: str):
-        embeds = self.search_by_mode('a', artist)
+        embeds: list[discord.Embed] = self.search_by_mode('a', artist)
         
         await interaction.response.send_message(embeds=embeds)
     
@@ -100,7 +101,7 @@ class Search(commands.Cog):
             await interaction.response.send_message("에러! 다시 시도해주세요...")
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(
         Search(bot),
         guilds= [discord.Object(id= bot.id)]

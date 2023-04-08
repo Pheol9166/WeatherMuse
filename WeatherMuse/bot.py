@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from type import Config
 import os
 import json
 
@@ -12,9 +13,9 @@ class WeatherMuse(commands.Bot):
             )
         
         with open("./config.json", "r", encoding="utf-8") as f:
-            config = json.load(f)
-            self.token = config['WeatherMuse']['token']
-            self.id = config['WeatherMuse']['id']
+            config: Config = json.load(f)
+            self.token: str = config['WeatherMuse']['token']
+            self.id: str = config['WeatherMuse']['id']
     
     def run(self):
         super().run(self.token)
@@ -29,3 +30,4 @@ class WeatherMuse(commands.Bot):
     async def on_ready(self):
         print(f"{self.user} has connected to Discord!")
 
+    

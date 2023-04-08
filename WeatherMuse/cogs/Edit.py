@@ -2,15 +2,16 @@ import json
 import discord
 from discord import app_commands
 from discord.ext import commands
+from WeatherMuse.type import Song, Playlist
 from WeatherMuse.load_songs import get_songs
 from WeatherMuse.err.errors import SongNotFound
 
 
 class Edit(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    def write_songs(self, songs: json) -> None:
+    def write_songs(self, songs: Playlist) -> None:
         with open("./DB/songs.json", "w") as fw:
                 json.dump(songs, fw, ensure_ascii=False, indent=4)
                 
@@ -85,15 +86,15 @@ class Edit(commands.Cog):
     ])
     async def add_song(self, interaction: discord.Interaction, weather: app_commands.Choice[str], title: str, artist: str, url: str):
         try:
-            songs = get_songs()
-            songs = songs[weather.value]
+            songs: Playlist = get_songs()
+            songs: list[Song] = songs[weather.value]
                           
-            elems = [(song["title"].lower(), song["artist"].lower(), song["url"])  for song in songs]
+            elems: list[tuple(str, str, str)] = [(song["title"].lower(), song["artist"].lower(), song["url"])  for song in songs]
             if (title.lower(), artist.lower(), url) in elems:
                 await interaction.response.send_message(f"{title}은 이미 플레이리스트에 있어요!")
                 return
                 
-            new_song = {
+            new_song: Song = {
                 "title": title,
                 "artist": artist,
                 "url": url
@@ -134,8 +135,8 @@ class Edit(commands.Cog):
         except:
             await interaction.response.send_message("에러! 다시 시도해주십시오...")
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(
         Edit(bot),
-        guilds= [discord.Object(id= bot.id)]
+        guilds= [discord.Object(id=bot.id)]
     )
