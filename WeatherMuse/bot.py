@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from type import Config
+from WeatherMuse.type import Config
 import os
 import json
 

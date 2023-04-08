@@ -1,5 +1,5 @@
 import json
-from type import Playlist
+from WeatherMuse.type import Playlist
 
 
 def get_songs() -> Playlist:
