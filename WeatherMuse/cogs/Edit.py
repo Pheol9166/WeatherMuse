@@ -16,16 +16,18 @@ class Edit(commands.Cog):
                 json.dump(songs, fw, ensure_ascii=False, indent=4)
                 
     def change(self, mode: str, song_name: str, new: str) -> None:
-        """_데이터 변경을 위한 함수입니다_
+        """_노래 데이터 변경을 위한 함수입니다_
 
         Args:
             mode (_str_): 무엇을 변경할 지 정하는 파라미터입니다.
                 't': 타이틀을 변경합니다.
                 'a': 아티스트를 변경합니다.
                 'u': URL을 변경합니다.
-            weather (app_commands.Choice[str]): _날씨를 받습니다._
             song_name (str): _찾는 노래 제목입니다._
             new (str): _바꿀 내용입니다._
+            
+        Raises:
+            SongNotFound: _곡을 찾지 못했을 때 발생하는 에러입니다._
         """
         songs = get_songs()
         
@@ -91,7 +93,7 @@ class Edit(commands.Cog):
                           
             elems: list[tuple(str, str, str)] = [(song["title"].lower(), song["artist"].lower(), song["url"])  for song in songs]
             if (title.lower(), artist.lower(), url) in elems:
-                await interaction.response.send_message(f"{title}은 이미 플레이리스트에 있어요!")
+                await interaction.response.send_message(f"{title}라는 곡은 이미 플레이리스트에 있어요!")
                 return
                 
             new_song: Song = {
@@ -131,7 +133,7 @@ class Edit(commands.Cog):
                 embed.add_field(name="🎵 제거된 곡", value=f"{title}")
                 await interaction.response.send_message(embed=embed)
             else:
-                await interaction.response.send_message(f"{title}이라는 곡은 플레이리스트에 없어요...")
+                await interaction.response.send_message(f"{title}라는 곡은 플레이리스트에 없어요...")
         except:
             await interaction.response.send_message("에러! 다시 시도해주십시오...")
 

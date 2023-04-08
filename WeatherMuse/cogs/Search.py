@@ -22,6 +22,22 @@ class Search(commands.Cog):
             raise EmbedMakeError
     
     def search_by_mode(self, mode: str, std: str, std2: Optional[str]= None) -> list[discord.Embed]:
+        """_플레이리스트에서 노래를 검색하여 임베드 리스트로 반환하는 함수입니다_
+
+        Args:
+            mode (str): _기준을 정하는 파라미터입니다._
+                't': 타이틀을 기준으로 검색합니다.
+                'a': 아티스트를 기준으로 검색합니다.
+                'm': 타이틀과 아티스트 두 가지 기준으로 검색합니다.
+            std (str): _검색할 입력값입니다._
+            std2 (Optional[str], optional): _기준이 'm'일 시 입력할 또다른 검색입니다._. Defaults to None.
+
+        Raises:
+            InputNotFound: _입력값이 플레이리스트에 없을 때 발생하는 에러입니다._
+
+        Returns:
+            list[discord.Embed]: _검색 결과입니다._
+        """
         results = []
         songs: Playlist = get_songs()
         
@@ -48,7 +64,7 @@ class Search(commands.Cog):
         
         raise InputNotFound
         
-    @app_commands.command(name="노래_검색", description="노래 제목과 가수에 부합하는 노래를 찾습니다.")
+    @app_commands.command(name="종합_검색", description="제목과 가수에 부합하는 곡을 찾습니다.")
     @app_commands.describe(song_name="노래 제목", artist="가수")
     async def search_song(self, interaction: discord.Interaction, song_name: str, artist: str):
         embeds: list[discord.Embed] = self.search_by_mode('m', song_name, artist)
@@ -56,14 +72,14 @@ class Search(commands.Cog):
         for embed in embeds:
             await interaction.response.send_message(embed=embed)
             
-    @app_commands.command(name="제목으로_검색", description="노래 제목에 부합하는 노래를 찾습니다.")
+    @app_commands.command(name="제목으로_검색", description="제목에 부합하는 곡을 찾습니다.")
     @app_commands.describe(song_name="노래 제목")
     async def search_by_name(self, interaction: discord.Interaction, song_name: str):
         embeds: list[discord.Embed] = self.search_by_mode('t', song_name)
 
         await interaction.response.send_message(embeds=embeds)
     
-    @app_commands.command(name="가수로_검색", description="가수에 부합하는 노래를 찾습니다.")
+    @app_commands.command(name="가수로_검색", description="가수에 부합하는 곡을 찾습니다.")
     @app_commands.describe(artist="가수")
     async def search_by_artist(self, interaction: discord.Interaction, artist: str):
         embeds: list[discord.Embed] = self.search_by_mode('a', artist)
@@ -74,7 +90,7 @@ class Search(commands.Cog):
     async def search_song_error(self, interaction: discord.Interaction, error: commands.CommandInvokeError):
         custom_err = error.original
         if isinstance(custom_err, InputNotFound):
-            await interaction.response.send_message("이 노래는 플레이리스트에 없어요...")
+            await interaction.response.send_message("이 곡은 플레이리스트에 없어요...")
         elif isinstance(custom_err, EmbedMakeError):
             await interaction.response.send_message("임베드 생성 에러! 다시 시도해주세요...")
         else:
