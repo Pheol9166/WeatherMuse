@@ -1,6 +1,7 @@
 from typing import Optional
 import discord
 from discord import app_commands
+from discord.app_commands import Choice
 from discord.ext import commands
 from WeatherMuse.type import Song, Playlist
 from WeatherMuse.load_songs import get_songs
@@ -14,9 +15,9 @@ class Search(commands.Cog):
     def make_embed(self, song: Song) -> discord.Embed:
         try:
             embed = discord.Embed(title="Weather Muse", description="검색 결과", color=0x00aaaa)
-            embed.add_field(name="제목", value=song['title'], inline=False)
-            embed.add_field(name="가수", value=song['artist'], inline=False)
-            embed.add_field(name="URL", value=song['url'], inline=False)
+            embed.add_field(name="🎵 제목", value=song['title'], inline=False)
+            embed.add_field(name="🎤 가수", value=song['artist'], inline=False)
+            embed.add_field(name="📌 URL", value=song['url'], inline=False)
             return embed
         except:
             raise EmbedMakeError
@@ -63,9 +64,18 @@ class Search(commands.Cog):
             return embeds
         
         raise InputNotFound
-        
+    
+    async def autocomplete_title_param(self, interaction: discord.Interaction, value: str) -> list[Choice[str]]:
+        songs: Playlist = get_songs()
+        return [Choice(name=song['title'], value=song['title']) for weather in songs for song in songs[weather] if value in song['title']]
+    
+    async def autocomplete_artist_param(self, interaction: discord.Interaction, value: str) -> list[Choice[str]]:
+        songs: Playlist = get_songs()
+        return [Choice(name=song['artist'], value=song['artist']) for weather in songs for song in songs[weather] if value in song['artist']]
+            
     @app_commands.command(name="종합_검색", description="제목과 가수에 부합하는 곡을 찾습니다.")
     @app_commands.describe(song_name="노래 제목", artist="가수")
+    @app_commands.autocomplete(song_name=autocomplete_title_param, artist=autocomplete_artist_param)
     async def search_song(self, interaction: discord.Interaction, song_name: str, artist: str):
         embeds: list[discord.Embed] = self.search_by_mode('m', song_name, artist)
         
@@ -74,6 +84,7 @@ class Search(commands.Cog):
             
     @app_commands.command(name="제목으로_검색", description="제목에 부합하는 곡을 찾습니다.")
     @app_commands.describe(song_name="노래 제목")
+    @app_commands.autocomplete(song_name=autocomplete_title_param)
     async def search_by_name(self, interaction: discord.Interaction, song_name: str):
         embeds: list[discord.Embed] = self.search_by_mode('t', song_name)
 
@@ -81,6 +92,7 @@ class Search(commands.Cog):
     
     @app_commands.command(name="가수로_검색", description="가수에 부합하는 곡을 찾습니다.")
     @app_commands.describe(artist="가수")
+    @app_commands.autocomplete(artist=autocomplete_artist_param)
     async def search_by_artist(self, interaction: discord.Interaction, artist: str):
         embeds: list[discord.Embed] = self.search_by_mode('a', artist)
         
