@@ -107,8 +107,7 @@ class Edit(commands.Cog):
     async def add_song(self, interaction: discord.Interaction, weather: str, new_title: str, new_artist: str, new_url: str):
         try:
             songs: Playlist = get_songs()
-            songs: list[Song] = songs[weather.value]
-            
+                        
             new_song: Song = {
                 "title": new_title,
                 "artist": new_artist,
@@ -119,7 +118,7 @@ class Edit(commands.Cog):
                 await interaction.response.send_message(f"{new_title}라는 곡은 이미 플레이리스트에 있어요!")
                 return
                 
-            songs.append(new_song)
+            songs[weather].append(new_song)
             Edit.write_songs(songs)
             
             embed = discord.Embed(title="노래 추가", color=0x00aaaa)
@@ -127,7 +126,8 @@ class Edit(commands.Cog):
             embed.add_field(name="🎤 아티스트", value=f"{new_artist}", inline=False)
             embed.add_field(name="📌 URL", value=f"{new_url}", inline=False)
             await interaction.response.send_message(embed=embed)
-        except:
+        except Exception as e:
+            print(e)
             await interaction.response.send_message("에러! 다시 시도해주세요...")
     
     @app_commands.command(name="노래_제거", description="플레이리스트의 기존의 곡을 제거합니다.")
