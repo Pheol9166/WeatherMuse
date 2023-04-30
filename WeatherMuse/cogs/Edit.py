@@ -126,8 +126,7 @@ class Edit(commands.Cog):
             embed.add_field(name="🎤 아티스트", value=f"{new_artist}", inline=False)
             embed.add_field(name="📌 URL", value=f"{new_url}", inline=False)
             await interaction.response.send_message(embed=embed)
-        except Exception as e:
-            print(e)
+        except:
             await interaction.response.send_message("에러! 다시 시도해주세요...")
     
     @app_commands.command(name="노래_제거", description="플레이리스트의 기존의 곡을 제거합니다.")
